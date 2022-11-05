@@ -1,5 +1,6 @@
 
 from time import sleep
+from time import ticks_ms
 from machine import Pin
 
 import _thread
@@ -17,15 +18,17 @@ pinnum_led_main = 25
 led_main = Pin(pinnum_led_main, Pin.OUT)
 led_main.value(0)
 
-sleep_time = 0.5
+# sleep_time = 0.5
 
 last_out = None
 
 _OUT_KEY = 'NONE'
+_OUT_KEY_TIME = ticks_ms()
 
 
 def key_waiter():
     global _OUT_KEY
+    global _OUT_KEY_TIME
     last_out = None
     while True:
         out = read_infrared_signal_code()
@@ -33,6 +36,7 @@ def key_waiter():
             out = last_out
         last_out = out
         _OUT_KEY = out
+        _OUT_KEY_TIME = ticks_ms()
 
 def test_key_waiter():
     global _OUT_KEY
@@ -44,6 +48,8 @@ def test_key_waiter():
 _thread.start_new_thread(key_waiter, ())
 
 def main():
+    global _OUT_KEY
+    global _OUT_KEY_TIME
     for i in range(4):
         led_main.value(1)
         sleep(0.3)
@@ -52,55 +58,43 @@ def main():
     
     while True:
         sleep(0.05)
-        # engines_stop()
-        # led_main.value(1)
-        # out = read_infrared_signal_code()
-        # led_main.value(0)
-        # if not out:
-        #     out = last_out
-        # last_out = out
+        
         out=_OUT_KEY
+        time_press = _OUT_KEY_TIME
+        time_now = ticks_ms()
+        
+        if (time_now-time_press) > 250:
+            engines_stop()
+            continue
+            
         
         if out == BUTTON_1: 
             engine_right(+1)
             engine_left(0)
-            sleep(sleep_time)
         elif out == BUTTON_2:  
             engine_right(+1)
             engine_left(+1)
-            sleep(sleep_time)
         elif out == BUTTON_3:
             engine_right(0)
             engine_left(+1)
-            sleep(sleep_time)
         elif out == BUTTON_4: 
             engine_right(+1)
             engine_left(-1)
-            sleep(sleep_time)
         elif out == BUTTON_5: 
             engines_stop()
-            sleep(sleep_time)
         elif out == BUTTON_6: 
             engine_right(-1)
             engine_left(+1)
-            sleep(sleep_time)
         elif out == BUTTON_7:
             engine_right(-1)
             engine_left(0)
-            sleep(sleep_time)
         elif out == BUTTON_8:  
             engine_right(-1)
             engine_left(-1)
-            sleep(sleep_time)
         elif out == BUTTON_9: 
             engine_right(0)
             engine_left(-1)
-            sleep(sleep_time)
-        
-        # led_main.value(0)
-        # print(out)
-        # print(type(out))
-        # print('-------')
+
 
 main()
 # test_key_waiter()
