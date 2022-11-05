@@ -44,6 +44,12 @@ def test_key_waiter():
 _thread.start_new_thread(key_waiter, ())
 
 def main():
+    for i in range(4):
+        led_main.value(1)
+        sleep(0.3)
+        led_main.value(0)
+        sleep(0.3)
+    
     while True:
         sleep(0.05)
         # engines_stop()
